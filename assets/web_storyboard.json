@@ -1,0 +1,90 @@
+{
+  "title": "知享知识库 · 3 步搭起团队 AI 知识库",
+  "url": "file:///Users/ajaxhe/.workbuddy/skills/product-demo-video-editor/assets/demo_site.html",
+  "viewport": [
+    1440,
+    900
+  ],
+  "dpr": 2,
+  "style": {
+    "intro": {
+      "title": "3 步搭起团队 AI 知识库",
+      "subtitle": "知享知识库 · 产品演示"
+    },
+    "outro": {
+      "title": "让每份文档都能被 AI 用起来",
+      "subtitle": "评论区扣「1」获取试用"
+    }
+  },
+  "steps": [
+    {
+      "id": "s1",
+      "action": "wait",
+      "ms": 2200,
+      "caption": "这是团队的知识库首页，所有知识空间一目了然"
+    },
+    {
+      "id": "s2",
+      "action": "click",
+      "sel": "[data-testid=new-kb]",
+      "caption": "第一步：点击「新建知识库」"
+    },
+    {
+      "id": "s3",
+      "action": "type",
+      "sel": "#kbname",
+      "text": "竞品调研",
+      "caption": "给知识库起个名字，比如「竞品调研」",
+      "concept": {
+        "title": "知识库",
+        "desc": "按团队或主题组织文档的空间，权限与 AI 检索都以它为边界"
+      }
+    },
+    {
+      "id": "s4",
+      "action": "click",
+      "sel": "[data-testid=create]",
+      "caption": "点击创建，新知识库立即出现在首页"
+    },
+    {
+      "id": "s5",
+      "action": "highlight",
+      "sel": "#grid .card.new",
+      "post": 1.6,
+      "caption": "新知识库已就绪，可以开始导入文档",
+      "zoom": 1.5
+    },
+    {
+      "id": "s6",
+      "action": "click",
+      "sel": "[data-testid=ask-ai]",
+      "caption": "第二步：打开 AI 助手"
+    },
+    {
+      "id": "s7",
+      "action": "type",
+      "sel": "#askinp",
+      "text": "比亚迪的搜索准确率提升了多少？",
+      "caption": "直接用自然语言提问"
+    },
+    {
+      "id": "s8",
+      "action": "click",
+      "sel": "[data-testid=send]",
+      "post": 1.0,
+      "caption": "发送问题"
+    },
+    {
+      "id": "s9",
+      "action": "highlight",
+      "sel": "#ans",
+      "post": 3.0,
+      "zoom": 1.6,
+      "caption": "第三步：AI 基于知识库作答，并给出引用来源",
+      "concept": {
+        "title": "RAG 检索增强",
+        "desc": "先从知识库检索相关片段，再让大模型基于原文作答，答案可溯源"
+      }
+    }
+  ]
+}

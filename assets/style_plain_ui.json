@@ -1,0 +1,10 @@
+{
+  "background": "none",
+  "crop": "window",
+  "out_size": "source",
+  "spotlight": 0,
+  "intro": null,
+  "outro": null,
+  "font": "/Applications/Microsoft Word.app/Contents/Resources/DFonts/msyh.ttc",
+  "font_bold": "/Applications/Microsoft Word.app/Contents/Resources/DFonts/msyhbd.ttc"
+}

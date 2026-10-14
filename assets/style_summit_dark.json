@@ -1,0 +1,15 @@
+{
+  "theme": "dark",
+  "intro": [
+    {"kicker": "2026 腾讯生态大会 · 乐享知识库", "title": "构建企业 Agent 可信上下文", "subtitle": "WorkBuddy × 乐享知识库", "dur": 4.5},
+    {"title": "周一 9 点，10 点要开 Q3 经营会", "title_size": 64, "subtitle": "资料散在 6 个部门、10 份文档里", "dur": 4.0}
+  ],
+  "outro": [
+    {"kicker": "企业 Agent 知识中枢", "title": "乐享知识库", "title_size": 72,
+     "columns": [
+       {"title": "看得全", "desc": "多源知识连接 打破孤岛"},
+       {"title": "找得准", "desc": "智能检索 跨库理解"},
+       {"title": "信得过", "desc": "动态治理 知识溯源"}
+     ], "dur": 5.0}
+  ]
+}

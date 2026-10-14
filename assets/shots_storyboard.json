@@ -1,0 +1,15 @@
+{
+  "transition": 0.45,
+  "style": {
+    "intro": {"title": "知享知识库 · 截图版演示", "subtitle": "仅用 3 张截图生成"}
+  },
+  "voice": {"enabled": false},
+  "shots": [
+    {"image": "shots/01_home.png", "dur": 3.6, "caption": "首页汇总了团队全部知识库，点击「新建知识库」", "click": [1923, 63]},
+    {"image": "shots/02_modal.png", "dur": 3.8, "caption": "填写知识库名称", "box": [1013, 784, 854, 83], "kind": "none",
+     "concept": {"title": "知识库", "desc": "按团队或主题组织文档的空间，权限与 AI 检索都以它为边界"}},
+    {"image": "shots/02_modal.png", "dur": 2.6, "caption": "点击创建", "click": [1804, 1059]},
+    {"image": "shots/03_ai.png", "dur": 4.6, "caption": "AI 助手基于知识库作答，并附上引用来源", "box": [2086, 230, 750, 216], "kind": "none", "zoom": 1.6,
+     "concept": {"title": "RAG 检索增强", "desc": "先检索知识库原文片段，再让大模型据此作答，答案可溯源"}}
+  ]
+}

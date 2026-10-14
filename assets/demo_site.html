@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>知享 · 企业 AI 知识库（演示）</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Hiragino Sans GB",sans-serif;background:#F5F7FB;color:#1d2433;height:100vh;display:flex}
+aside{width:232px;background:#fff;border-right:1px solid #E6EAF2;padding:20px 14px;display:flex;flex-direction:column;gap:4px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px;padding:6px 10px 22px}
+.logo i{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#2F6BFF,#7B5CFF);display:inline-block}
+.nav{padding:11px 12px;border-radius:10px;font-size:15px;color:#4a5468;cursor:pointer;display:flex;gap:10px;align-items:center}
+.nav:hover{background:#F1F4FA}.nav.on{background:#EAF0FF;color:#2F6BFF;font-weight:600}
+main{flex:1;display:flex;flex-direction:column;min-width:0}
+header{height:64px;background:#fff;border-bottom:1px solid #E6EAF2;display:flex;align-items:center;padding:0 28px;gap:16px}
+.search{flex:1;max-width:520px;height:40px;border-radius:10px;background:#F1F4FA;border:1px solid transparent;padding:0 14px;font-size:14px}
+.btn{height:40px;padding:0 18px;border-radius:10px;border:none;background:#2F6BFF;color:#fff;font-size:14px;font-weight:600;cursor:pointer}
+.btn.ghost{background:#fff;color:#2F6BFF;border:1px solid #CFDBFF}
+.avatar{width:36px;height:36px;border-radius:50%;background:#FFB547;margin-left:auto}
+.content{padding:28px;overflow:auto;flex:1}
+h2{font-size:22px;margin-bottom:6px}.sub{color:#7a8499;font-size:14px;margin-bottom:22px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{background:#fff;border:1px solid #E6EAF2;border-radius:14px;padding:20px;min-height:132px;transition:.3s}
+.card h3{font-size:16px;margin:12px 0 6px}.card p{font-size:13px;color:#7a8499;line-height:1.6}
+.card .ic{width:38px;height:38px;border-radius:10px;background:#EAF0FF}
+.card.new{animation:pop .5s ease;border-color:#2F6BFF;box-shadow:0 0 0 4px #2F6BFF22}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
+.mask{position:fixed;inset:0;background:#0b122055;display:none;align-items:center;justify-content:center}
+.mask.show{display:flex}
+.modal{width:480px;background:#fff;border-radius:16px;padding:26px}
+.modal h3{font-size:18px;margin-bottom:16px}
+.field{width:100%;height:42px;border:1px solid #D9DFEA;border-radius:10px;padding:0 12px;font-size:15px;margin-bottom:14px}
+.row{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+.ai{position:fixed;right:0;top:0;bottom:0;width:420px;background:#fff;border-left:1px solid #E6EAF2;box-shadow:-10px 0 30px #0b122014;transform:translateX(100%);transition:.35s;padding:22px;display:flex;flex-direction:column;gap:14px}
+.ai.show{transform:none}
+.ai h3{font-size:18px}
+.q{align-self:flex-end;background:#2F6BFF;color:#fff;padding:10px 14px;border-radius:12px 12px 2px 12px;font-size:14px;max-width:85%}
+.a{background:#F4F6FB;padding:14px;border-radius:12px 12px 12px 2px;font-size:14px;line-height:1.7;display:none}
+.a.show{display:block}
+.cite{display:inline-block;margin-top:8px;font-size:12px;color:#2F6BFF;background:#EAF0FF;border-radius:6px;padding:2px 8px}
+.ai .inp{display:flex;gap:8px;margin-top:auto}
+</style>
+</head>
+<body>
+<aside>
+  <div class="logo"><i></i>知享知识库</div>
+  <div class="nav on" data-testid="nav-home">🏠 首页</div>
+  <div class="nav" data-testid="nav-kb">📚 我的知识库</div>
+  <div class="nav" data-testid="nav-ai" onclick="openAI()">✨ AI 助手</div>
+  <div class="nav">⚙️ 设置</div>
+</aside>
+<main>
+  <header>
+    <input class="search" id="search" placeholder="搜索文档、知识库、成员…">
+    <button class="btn ghost" data-testid="ask-ai" onclick="openAI()">✨ 问 AI</button>
+    <button class="btn" data-testid="new-kb" onclick="openNew()">＋ 新建知识库</button>
+    <div class="avatar"></div>
+  </header>
+  <div class="content">
+    <h2>下午好，凡哥</h2>
+    <div class="sub">团队共有 3 个知识库，本周新增 42 篇文档</div>
+    <div class="grid" id="grid">
+      <div class="card"><div class="ic"></div><h3>产品需求库</h3><p>PRD、版本纪要与评审记录 · 128 篇</p></div>
+      <div class="card"><div class="ic" style="background:#FFF1E0"></div><h3>客户案例</h3><p>标杆客户落地方案与数据 · 36 篇</p></div>
+      <div class="card"><div class="ic" style="background:#E7F8EF"></div><h3>新人手册</h3><p>入职指南、制度与常用工具 · 54 篇</p></div>
+    </div>
+  </div>
+</main>
+<div class="mask" id="mask">
+  <div class="modal">
+    <h3>新建知识库</h3>
+    <input class="field" id="kbname" placeholder="给知识库起个名字">
+    <input class="field" id="kbdesc" placeholder="一句话描述（可选）">
+    <div class="row"><button class="btn ghost" onclick="closeNew()">取消</button><button class="btn" data-testid="create" onclick="create()">创建</button></div>
+  </div>
+</div>
+<div class="ai" id="ai">
+  <h3>✨ AI 助手</h3>
+  <div class="q" id="q" style="display:none"></div>
+  <div class="a" id="ans">根据《客户案例》知识库：比亚迪接入后搜索准确率从 34% 提升到 85.7%，摩尔机电检索效率提升 95%。<br><span class="cite">引用：客户案例 / 比亚迪落地复盘</span></div>
+  <div class="inp"><input class="field" id="askinp" style="margin:0" placeholder="问问你的知识库…"><button class="btn" data-testid="send" onclick="send()">发送</button></div>
+</div>
+<script>
+function openNew(){document.getElementById('mask').classList.add('show')}
+function closeNew(){document.getElementById('mask').classList.remove('show')}
+function create(){const n=document.getElementById('kbname').value||'未命名';const d=document.getElementById('kbdesc').value||'刚刚创建';
+ const c=document.createElement('div');c.className='card new';c.innerHTML='<div class="ic" style="background:#F1EAFF"></div><h3>'+n+'</h3><p>'+d+' · 0 篇</p>';
+ document.getElementById('grid').prepend(c);closeNew()}
+function openAI(){document.getElementById('ai').classList.add('show')}
+function send(){const v=document.getElementById('askinp').value;const q=document.getElementById('q');q.textContent=v;q.style.display='block';
+ document.getElementById('askinp').value='';setTimeout(()=>document.getElementById('ans').classList.add('show'),700)}
+</script>
+</body>
+</html>
