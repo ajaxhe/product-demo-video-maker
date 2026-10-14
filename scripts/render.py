@@ -413,7 +413,7 @@ def apply_mosaic(frame, blurs):
 
 
 class CropSource:
-    """只取源画面的一块区域（如 WorkBuddy 窗口），坐标系随之平移"""
+    """只取源画面的一块区域（如目标应用窗口），坐标系随之平移"""
 
     def __init__(self, src, x, y, w, h):
         self.src, self.x, self.y, self.w, self.h = src, x, y, w, h

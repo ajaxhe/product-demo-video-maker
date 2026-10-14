@@ -9,8 +9,9 @@ import sys
 from pathlib import Path
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
-PY = "/Users/ajaxhe/.workbuddy/binaries/python/envs/default/bin/python"
-YOUTU = SKILL_DIR.parent / "lucwei-1782700541103768418-dd050fc3__knot" / "youtu-gui-agent"
+import os, sys
+PY = os.environ.get("PDVE_PY", sys.executable)
+YOUTU = os.environ.get("PDVE_YOUTU", "/usr/local/bin/youtu-gui-agent")
 
 
 def which(name):

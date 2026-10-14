@@ -13,14 +13,14 @@ $PY $SK/from_video.py build <work> --nosub                 # → <name>_vN.mp4 +
 $PY $SK/from_video.py reburn <work> [--srt 改过的.srt] --nosub   # 用户改完成片字幕后重烧下一版
 ```
 
-- 先确认源文件存在：用户可能中途改名（实测「录屏2026-10-14 18.49.34.mov」被改成「wb+乐享demo.mov」）。报 No such file 时 `ls` 目录按大小/修改时间找。
+- 先确认源文件存在：用户可能中途改名（实测发生过源文件中途被改名）。报 No such file 时 `ls` 目录按大小/修改时间找。
 - 窗口录制（⌘⇧5 录所选窗口）不需要 crop；全屏录制才填 `crop`。
 - 成片尺寸 = 录屏原尺寸（`out_size: source`），不强制 1080p。
 
 ## 2 edit.json
 
 ```json
-{"video": "<源或 combined.mp4>", "crop": null, "name": "乐享xWorkBuddy_演示",
+{"video": "<源或 combined.mp4>", "crop": null, "name": "产品演示",
  "cut":   [[t0,t1], ...],
  "speed": [[t0,t1,倍速], ...],
  "focus": [{"t":点击时刻,"x":px,"y":px,"zoom":1.8,"hold":1.2},

@@ -39,7 +39,7 @@ $PY $SK/inspect_tool.py clicks <work>/events.json      # 点击后局部截图�
 ```
 
 youtu-gui-agent 鉴权（静默，不展示 token）：`<youtu> auth --status`；失效则 `connect_cloud_service` 取 `tempToken` → `<youtu> auth --save-token`。
-youtu 路径：`~/.workbuddy/skills/lucwei-1782700541103768418-dd050fc3__knot/youtu-gui-agent`；`run` 只有 `-v`/`--max-steps` 参数。
+youtu-gui-agent 是可选依赖（VLM 代操作），路径可用环境变量 `PDVE_YOUTU` 指定；`run` 只有 `-v`/`--max-steps` 参数。
 
 ## C+ Mac 后台长录 + 分批确定性驱动（AI 代录正式镜头用）
 
@@ -47,7 +47,7 @@ youtu 路径：`~/.workbuddy/skills/lucwei-1782700541103768418-dd050fc3__knot/yo
 
 ```bash
 $PY $SK/ui.py shot <work>/u1.jpg ; $PY $SK/ui.py click X Y        # 探路：截图读坐标（pt）
-$PY $SK/rec_mac.py --work <work> --duration 2400 --countdown 0 --app WorkBuddy   # run_in_background 长录
+$PY $SK/rec_mac.py --work <work> --duration 2400 --countdown 0 --app <目标应用>   # run_in_background 长录
 $PY $SK/ui.py run <work>/b1.json --log <work>/b1.log.json          # 分批执行，每批后 shot 检查
 #   等待段 {"do":"wait","s":90,"speed":12,"caption":"..."}
 # Write 工具写 <work>/STOP 停录

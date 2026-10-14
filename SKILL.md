@@ -1,6 +1,6 @@
 ---
 name: product-demo-video-editor
-description: 产品演示视频剪辑与字幕（凡哥专用）。默认流程：用户自己静音录好产品界面（.mov/.mp4），本 skill 看关键帧理解操作，剪掉空档与误操作、Agent 等待段高倍速压缩、核心点击推近加涟漪、敏感团队信息打码、合并补录片段、配帧级字幕（微软雅黑，烧入成片 + 可改 .srt + 无字幕版），用户改 srt 后一键重烧。也支持从 Web URL（无头录制）、一组截图、或由 AI 代操作 Mac 应用来生成素材。触发词：剪辑录屏、演示视频剪辑、配字幕、加字幕、录屏加推近、打码、补录合进去、改字幕重烧、控制在 1 分钟、产品演示视频、录个 demo、截图做视频、product demo video。
+description: 产品演示视频剪辑与字幕。默认流程：用户自己静音录好产品界面（.mov/.mp4），本 skill 看关键帧理解操作，剪掉空档与误操作、Agent 等待段高倍速压缩、核心点击推近加涟漪、敏感团队信息打码、合并补录片段、配帧级字幕（微软雅黑，烧入成片 + 可改 .srt + 无字幕版），用户改 srt 后一键重烧。也支持从 Web URL（无头录制）、一组截图、或由 AI 代操作 Mac 应用来生成素材。触发词：剪辑录屏、演示视频剪辑、配字幕、加字幕、录屏加推近、打码、补录合进去、改字幕重烧、控制在 1 分钟、产品演示视频、录个 demo、截图做视频、product demo video。
 ---
 
 # 产品演示视频剪辑
@@ -15,8 +15,8 @@ Mac 代录 ─rec_mac.py/ui.py─┘   （详见 references/record-channels.md�
 ```
 
 ```bash
-SK=~/.workbuddy/skills/product-demo-video-editor/scripts
-PY=/Users/ajaxhe/.workbuddy/binaries/python/envs/default/bin/python   # 已装 opencv / pillow / playwright / pyobjc
+SK=<本技能目录>/scripts
+PY=python3   # 需安装 opencv-python pillow playwright pyobjc
 ```
 
 ## 第 0 步：本机执行约束（不遵守必翻车）
@@ -27,7 +27,7 @@ PY=/Users/ajaxhe/.workbuddy/binaries/python/envs/default/bin/python   # 已装 o
 4. 渲染超过 2 分钟的任务用 `run_in_background: true`；不要前台 `| tail` 等长任务。
 5. zsh 不做变量分词：时间点、坐标等参数逐个写进命令，别塞进一个变量再展开。
 
-## 默认偏好（凡哥定稿，勿回退）
+## 默认偏好
 
 - 素材来自真实产品界面，后期只加字幕 + 核心点击推近。不加片头片尾、过渡页、背景、概念卡，除非用户明确要求。
 - 成片尺寸 = 录屏原尺寸，不强制 1080p；时长按用户要求（常为 ≤60s）。

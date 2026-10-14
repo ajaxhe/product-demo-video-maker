@@ -32,7 +32,7 @@ def screen_device():
     for line in out.splitlines():
         if "Capture screen 0" in line:
             return "Capture screen 0"
-    sys.exit("[x] ffmpeg 看不到 'Capture screen 0' → 系统设置 › 隐私与安全性 › 屏幕录制，给 WorkBuddy/终端 授权")
+    sys.exit("[x] ffmpeg 看不到 'Capture screen 0' → 系统设置 › 隐私与安全性 › 屏幕录制，给终端/宿主应用 授权")
 
 
 class Tracker(threading.Thread):
