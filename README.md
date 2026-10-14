@@ -1,4 +1,4 @@
-# product-demo-video-editor
+# product-demo-video-maker
 
 [Agent Skill](https://agentskills.io) / [Claude Skill](https://www.anthropic.com/news/skills) 形式的**产品演示视频剪辑**工具：把一段自己录制的产品界面录屏，交给 AI 看关键帧理解操作，产出一条带字幕、带点击推近的演示成片。
 

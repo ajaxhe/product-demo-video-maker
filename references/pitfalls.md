@@ -1,4 +1,4 @@
-# 实测踩坑记录（product-demo-video-editor）
+# 实测踩坑记录（product-demo-video-maker）
 
 > 格式：症状 → 根因 → 解法。新坑追加到末尾并标日期。
 > 目录：本机环境 1-5b · Web 录制 6-10 · Mac 录制 11-15 · 渲染 16-18 · Mac 代录 C+ 19-25 · 剪辑用户录屏 26-36

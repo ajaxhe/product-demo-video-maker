@@ -1,4 +1,4 @@
-"""product-demo-video-editor 公共工具：路径解析、字体、ffprobe、JSON 读写。
+"""product-demo-video-maker 公共工具：路径解析、字体、ffprobe、JSON 读写。
 约束：本机安全中心会拦截临时文件删除 → 全部脚本禁止使用 tempfile 模块，中间文件一律写到 <work_dir>。
 """
 import json
