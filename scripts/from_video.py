@@ -10,6 +10,10 @@
       --nosub 另出 成片_v1_无字幕.mp4（推近/打码相同）
   reburn <work> [--srt 改过的成片字幕.srt]
       用户改完成片字幕（文字或时间都可改）→ 映射回源时间 → 重烧为下一个版本 成片_vN.mp4
+  concat <out.mp4> <录屏1> <录屏2> ...
+      多段录屏归一 30fps 后拼成一条，输出 <out>.sources.json（每段 offset，按帧数计算）
+  plan <work> [--target 30]
+      <work>/plan.json（保留段 + 每段字幕）→ edit.json + captions_src.srt，打印预计时长与字幕可读性告警
 
 edit.json:
   {"video": "...", "crop": [x,y,w,h] | null,
@@ -29,7 +33,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import FFMPEG, ensure_dir, load_json, probe, save_json  # noqa: E402
+from common import FFMPEG, FFPROBE, ensure_dir, load_json, probe, save_json  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 PLAIN = {"background": "none", "out_size": "source", "spotlight": 0, "intro": None, "outro": None}
@@ -282,14 +286,125 @@ def cmd_reburn(a):
     build(work, nosub=a.nosub)
 
 
+# ---------------------------------------------------------------- 多段录屏合并 / 剪辑计划
+
+def _frames(video):
+    out = subprocess.run([FFPROBE, "-v", "error", "-count_frames", "-select_streams", "v:0",
+                          "-show_entries", "stream=nb_read_frames", "-of", "csv=p=0", str(video)],
+                         capture_output=True, text=True).stdout.strip()
+    return int(out or 0)
+
+
+def cmd_concat(a):
+    """多段录屏 → 各自归一到 30fps → 无损拼接；按帧数算每段在合并片里的起点（避免半帧误差）"""
+    out = Path(a.out).resolve()
+    infos = [probe(Path(v)) for v in a.videos]
+    if len({(i["w"], i["h"]) for i in infos}) > 1:
+        sys.exit(f"[x] 各段分辨率不一致：{[(i['w'], i['h']) for i in infos]}，先统一录制窗口尺寸再合并")
+    parts, sources, t = [], [], 0.0
+    for i, v in enumerate(a.videos, 1):
+        p = out.with_name(f"{out.stem}_part{i}.mp4")
+        subprocess.run([FFMPEG, "-y", "-v", "error", "-i", str(v), "-vf", "fps=30,setpts=PTS-STARTPTS", "-an",
+                        "-c:v", "libx264", "-preset", "ultrafast", "-crf", "16", "-pix_fmt", "yuv420p", str(p)],
+                       check=True)
+        n = _frames(p)
+        sources.append({"src": i, "file": str(Path(v).resolve()), "offset": round(t, 3), "duration": round(n / 30, 3)})
+        parts.append(p)
+        t += n / 30
+    lst = out.with_name(out.stem + "_list.txt")
+    lst.write_text("".join(f"file '{p}'\n" for p in parts), encoding="utf-8")
+    subprocess.run([FFMPEG, "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", str(lst), "-c", "copy", str(out)],
+                   check=True)
+    meta = out.with_suffix(".sources.json")
+    save_json(meta, {"video": str(out), "duration": round(t, 3), "sources": sources})
+    print(f"[ok] {out}（{t:.1f}s）")
+    for s in sources:
+        print(f"     src {s['src']}: offset {s['offset']:>8.3f}s  时长 {s['duration']:.1f}s  {Path(s['file']).name}")
+    print(f"[ok] {meta}（plan.json 里写 \"sources\": 该文件，即可用「源序号 + 源内时间」写剪辑计划）")
+
+
+def cmd_plan(a):
+    """plan.json（保留段 + 每段字幕）→ edit.json + captions_src.srt，并估算成片时长、检查字幕可读时长"""
+    work = Path(a.work).resolve()
+    pl = load_json(work / "plan.json")
+    offs = {}
+    if pl.get("sources"):
+        meta = load_json((work / pl["sources"]) if not Path(pl["sources"]).is_absolute() else pl["sources"])
+        offs = {s["src"]: s["offset"] for s in meta["sources"]}
+        pl.setdefault("video", meta["video"])
+    video = Path(pl["video"]) if Path(pl["video"]).is_absolute() else work / pl["video"]
+    dur = probe(video)["duration"]
+
+    def T(src, t):
+        return round(t + (offs.get(src, 0.0) if src else 0.0), 3)
+
+    segs = []  # [t0, t1, speed, caption]（合并片时间）
+    for s in pl["segments"]:
+        if len(s) == 5:
+            segs.append([T(s[0], s[1]), T(s[0], s[2]), float(s[3]), s[4]])
+        else:
+            segs.append([float(s[0]), float(s[1]), float(s[2]), s[3]])
+    cut, speed, prev = [], [], 0.0
+    for t0, t1, f, _ in segs:
+        if t0 < prev - 1e-6:
+            sys.exit(f"[x] 保留段需按时间递增且不重叠：{t0} < {prev}")
+        if t0 > prev + 1e-6:
+            cut.append([round(prev, 3), t0])
+        if f != 1.0:
+            speed.append([t0, t1, f])
+        prev = t1
+    if prev < dur - 1e-3:
+        cut.append([round(prev, 3), round(dur, 3)])
+
+    def conv(items):
+        res = []
+        for it in items or []:
+            it = dict(it)
+            src = it.pop("src", None)
+            for k in ("t", "t0", "t1"):
+                if k in it:
+                    it[k] = T(src, it[k])
+            res.append(it)
+        return res
+
+    style = dict(pl.get("style") or {})
+    msyh = Path("/Applications/Microsoft Word.app/Contents/Resources/DFonts")
+    if "font" not in style and (msyh / "msyh.ttc").exists():
+        style["font"], style["font_bold"] = str(msyh / "msyh.ttc"), str(msyh / "msyhbd.ttc")
+    save_json(work / "edit.json", {"video": str(video), "crop": pl.get("crop"), "name": pl.get("name", "成片"),
+                                   "cut": cut, "speed": speed, "focus": conv(pl.get("focus")),
+                                   "blur": conv(pl.get("blur")), "style": style})
+    # 字幕：相邻且文字相同的保留段合并成一条（跨越被剪掉的空档也行，渲染时按时间轴映射）
+    caps = []
+    for t0, t1, f, c in segs:
+        out_len = (t1 - t0) / f
+        if caps and caps[-1][2] == c:
+            caps[-1][1] = t1
+            caps[-1][3] += out_len
+        else:
+            caps.append([t0, t1, c, out_len])
+    write_srt(work / "captions_src.srt", [[a0, b0 - 0.02, c] for a0, b0, c, _ in caps if c])
+    total = sum((t1 - t0) / f for t0, t1, f, _ in segs)
+    print(f"[ok] edit.json + captions_src.srt；预计成片 {total:.1f}s，字幕 {sum(1 for c in caps if c[2])} 条")
+    for a0, b0, c, L in caps:
+        if c:
+            print(f"     {L:4.1f}s  {c}" + ("   [!] <3s 读不完：放慢该段或与相邻字幕合并" if L < 3 else "")
+                  + ("   [!] >20 字" if len(c) > 20 else ""))
+    if a.target and abs(total - a.target) > 1.0:
+        print(f"  [!] 与目标 {a.target}s 相差 {total - a.target:+.1f}s：超了先压等待/输入段，短了先放慢展示段")
+
+
 def main():
     ap = argparse.ArgumentParser()
     sp = ap.add_subparsers(dest="cmd", required=True)
     x = sp.add_parser("analyze"); x.add_argument("video"); x.add_argument("--work"); x.add_argument("--crop")
     b = sp.add_parser("build"); b.add_argument("work"); b.add_argument("--nosub", action="store_true")
     r = sp.add_parser("reburn"); r.add_argument("work"); r.add_argument("--srt"); r.add_argument("--nosub", action="store_true")
+    c = sp.add_parser("concat"); c.add_argument("out"); c.add_argument("videos", nargs="+")
+    p = sp.add_parser("plan"); p.add_argument("work"); p.add_argument("--target", type=float)
     a = ap.parse_args()
-    {"analyze": cmd_analyze, "build": cmd_build, "reburn": cmd_reburn}[a.cmd](a)
+    {"analyze": cmd_analyze, "build": cmd_build, "reburn": cmd_reburn,
+     "concat": cmd_concat, "plan": cmd_plan}[a.cmd](a)
 
 
 if __name__ == "__main__":

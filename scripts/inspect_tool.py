@@ -3,7 +3,8 @@
 
   python inspect_tool.py grid <image> [--out x.png] [--step 100]   # 叠加坐标网格，读点击坐标用
   python inspect_tool.py clicks <events.json> [--out clicks.jpg]    # 每次点击处的局部截图拼成联系表，写字幕用
-  python inspect_tool.py frames <video> <t1> <t2> ... [--out f.jpg] # 成片抽帧联系表，验收用
+  python inspect_tool.py frames <video> <t1> <t2> ... [--out f.jpg] # 成片抽帧联系表，验收用（不覆盖旧图，自动编号）
+  python inspect_tool.py gridframes <video> <t1> ... [--step 200]   # 源视频抽帧 + 源像素网格，读推近/打码坐标用
 """
 import argparse
 import subprocess
@@ -80,11 +81,44 @@ def cmd_clicks(a):
     sheet(tiles, a.out or work / "clicks.jpg")
 
 
+def _unique(p):
+    """本机禁删/禁改名 → 不覆盖旧图，自动编号（避免连续两次抽帧互相覆盖、读到旧图）"""
+    p = Path(p)
+    n, q = 2, p
+    while q.exists():
+        q = p.with_name(f"{p.stem}_{n}{p.suffix}")
+        n += 1
+    return q
+
+
 def cmd_frames(a):
     video = Path(a.video).resolve()
     tmp = video.parent / "_grab.png"
     tiles = [(grab(video, float(t), tmp), f"t={float(t):.1f}s") for t in a.times]
-    sheet(tiles, a.out or video.with_name(video.stem + "_frames.jpg"), cols=min(3, len(tiles)))
+    sheet(tiles, a.out or _unique(video.with_name(video.stem + "_frames.jpg")), cols=min(3, len(tiles)))
+
+
+def cmd_gridframes(a):
+    """读推近/打码坐标用：按「源像素」标网格再缩小查看 → 网格标签就是源像素，无需换算"""
+    video = Path(a.video).resolve()
+    out_dir = Path(a.out_dir).resolve() if a.out_dir else video.parent
+    tmp = out_dir / "_grab.png"
+    for t in a.times:
+        im = grab(video, float(t), tmp)
+        d = ImageDraw.Draw(im, "RGBA")
+        f = _font(max(18, im.width // 70))
+        for x in range(0, im.width, a.step):
+            d.line([(x, 0), (x, im.height)], fill=(255, 0, 80, 150), width=2)
+            d.text((x + 4, 4), str(x), font=f, fill=(255, 0, 80, 255))
+        for y in range(0, im.height, a.step):
+            d.line([(0, y), (im.width, y)], fill=(0, 120, 255, 150), width=2)
+            d.text((4, y + 4), str(y), font=f, fill=(0, 120, 255, 255))
+        d.text((im.width - im.width // 8, im.height // 30), f"t={float(t):.2f}", font=f, fill=(0, 150, 0, 255))
+        w = min(a.width, im.width)
+        im = im.resize((w, int(im.height * w / im.width)))
+        out = _unique(out_dir / f"{video.stem}_grid_{float(t):.2f}.jpg")
+        im.save(out, quality=85)
+        print(f"[ok] {out}")
 
 
 def main():
@@ -93,12 +127,16 @@ def main():
     g = sp.add_parser("grid"); g.add_argument("image"); g.add_argument("--out"); g.add_argument("--step", type=int, default=100)
     c = sp.add_parser("clicks"); c.add_argument("events"); c.add_argument("--out")
     f = sp.add_parser("frames"); f.add_argument("video"); f.add_argument("times", nargs="+"); f.add_argument("--out")
+    gf = sp.add_parser("gridframes"); gf.add_argument("video"); gf.add_argument("times", nargs="+")
+    gf.add_argument("--out-dir"); gf.add_argument("--step", type=int, default=200); gf.add_argument("--width", type=int, default=1400)
     a = ap.parse_args()
     if a.cmd == "grid":
         p = Path(a.image)
         print(grid_image(p, a.out or p.with_name(p.stem + ".grid.png"), a.step))
     elif a.cmd == "clicks":
         cmd_clicks(a)
+    elif a.cmd == "gridframes":
+        cmd_gridframes(a)
     else:
         cmd_frames(a)
 

@@ -11,25 +11,28 @@ Mac 代录 ─rec_mac.py/ui.py─┘
 
 ## 它做什么
 
-- **剪辑**：自动识别画面活动段，剪掉空档与误操作，Agent 执行/生成的等待段高倍速压缩（实测 7 分钟压到 3 秒）
+- **剪辑**：自动识别画面活动段；多段录屏按故事顺序拼成一条时间线；剪掉空档、加载页与误操作，等待段高倍速压缩（实测 7 分钟压到 3 秒）；按目标时长（如 30s）估算并分配节奏
 - **字幕**：看关键帧理解操作后逐条配字幕，微软雅黑、黑底白字、垂直居中；同时产出烧入版、可编辑 `.srt`、无字幕版三种
-- **推近**：录屏没有点击数据时，AI 从画面里读出光标位置，给核心点击加推近 + 涟漪
+- **推近**：录屏没有点击数据时，AI 从带源像素网格的抽帧里读出坐标，给核心点击加推近 + 涟漪，同屏连续关注点平移衔接
 - **打码**：对非演示用的团队名、人名等敏感信息打马赛克（镜头推近后依然覆盖）
 - **改了重烧**：用户改完 `.srt`（文字或时间）一键重新合成，样式不变；也可合并补录片段
 
 ## 快速开始
 
 ```bash
-# 1 分析录屏：生成关键帧联系表 + 剪辑建议
-python3 scripts/from_video.py analyze your_recording.mov --work ./work
+# 1 分析录屏：生成关键帧联系表 + 活动段
+python3 scripts/from_video.py analyze your_recording.mov --work ./work/v1
 
-# 2 AI 阅读工作目录里的 keyframes_*.jpg，写 work/captions_src.srt，并修订 work/edit.json
-#   （cut 剪段 / speed 倍速 / focus 推近 / blur 打码 / style 样式）
+# 2 多段录屏时先合并（单段跳过）
+python3 scripts/from_video.py concat ./work/combined.mp4 rec1.mov rec2.mov rec3.mov
 
-# 3 渲染：成片_v1.mp4 + 可编辑成片_v1.srt + 成片_v1_无字幕.mp4
+# 3 AI 阅读 keyframes_*.jpg，写 work/plan.json（保留段 + 倍速 + 字幕 + 推近 + 打码），生成剪辑参数
+python3 scripts/from_video.py plan ./work --target 30
+
+# 4 渲染：成片_v1.mp4 + 可编辑成片_v1.srt + 成片_v1_无字幕.mp4
 python3 scripts/from_video.py build ./work --nosub
 
-# 4 改完成片 .srt 后重烧下一版
+# 5 改完成片 .srt 后重烧下一版
 python3 scripts/from_video.py reburn ./work --nosub
 ```
 
@@ -38,12 +41,12 @@ python3 scripts/from_video.py reburn ./work --nosub
 ## 目录结构
 
 ```
-SKILL.md                     # Skill 入口（触发条件、约束、流程速览）
+SKILL.md                     # Skill 入口（触发条件、约束、剪辑原则、流程速览）
 references/
-  edit-recording.md          # 默认流程：剪辑用户录屏（edit.json 结构、读坐标、打码清单、补录合并）
+  edit-recording.md          # 默认流程：故事节拍、plan.json、节奏与时长、字幕、推近、打码、多段合并、验收
   record-channels.md         # 其他素材来源：Web 无头录制 / 截图 / Mac 代录
   style.md                   # render.py 样式参数表
-  pitfalls.md                # 36 条实测踩坑（症状 → 根因 → 解法）
+  pitfalls.md                # 工具/环境/渲染实测踩坑（症状 → 根因 → 解法）
 scripts/                     # from_video / render / rec_web / rec_mac / from_shots / ui / inspect_tool ...
 assets/                      # 分镜与样式示例、自测用模拟页面
 ```
