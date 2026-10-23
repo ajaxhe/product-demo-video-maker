@@ -12,6 +12,8 @@ SKILL_DIR = Path(__file__).resolve().parent.parent
 import os, sys
 PY = os.environ.get("PDVE_PY", sys.executable)
 YOUTU = os.environ.get("PDVE_YOUTU", "/usr/local/bin/youtu-gui-agent")
+# 所有演示视频项目的固定根目录：<ROOT>/<项目名>/{source,work,output,scripts}（from_video.py init 创建）
+PROJECTS_ROOT = Path(os.environ.get("PDVM_ROOT", "~/Movies/demo-videos")).expanduser()
 
 
 def which(name):

@@ -5,13 +5,14 @@
 ## 1 流程
 
 ```bash
+$PY $SK/from_video.py init <项目名> --src <录屏1> <录屏2> ...       # 建项目目录（SKILL.md「项目目录」）；以下 <work> = <ROOT>/<项目名>/work
 # 前缀（见 SKILL.md 第 0 步）：cd <work>/_tmp && export TMPDIR=$PWD; 非沙箱运行
-$PY $SK/from_video.py analyze <录屏.mov> --work <work>/v1          # 每段素材各跑一次：关键帧联系表 + 活动段 runs
+$PY $SK/from_video.py analyze <录屏.mov> --work <work>/analyze/<录屏名>   # 每段素材各跑一次：关键帧联系表 + 活动段 runs
 # 多段素材：先合成一条时间线（单段素材跳过）
 $PY $SK/from_video.py concat <work>/combined.mp4 <录屏1> <录屏2> ...  # → combined.sources.json（每段 offset）
 # 写 <work>/plan.json（§3）→ 生成 edit.json + captions_src.srt，打印预计时长与字幕告警
 $PY $SK/from_video.py plan <work> --target 30
-$PY $SK/from_video.py build <work> --nosub                         # → <name>_vN.mp4 + _vN.srt + _vN_无字幕.mp4
+$PY $SK/from_video.py build <work> --nosub                         # → output/<name>_vN.mp4 + _vN.srt + _vN_无字幕.mp4
 $PY $SK/from_video.py reburn <work> [--srt 改过的.srt] --nosub      # 用户只改字幕时
 ```
 
@@ -43,6 +44,7 @@ $PY $SK/from_video.py reburn <work> [--srt 改过的.srt] --nosub      # 用户�
 ```json
 {"sources": "combined.sources.json",
  "name": "产品演示",
+ "out_dir": "../output",
  "segments": [[1, 9.0, 10.6, 1.2, "第一条字幕"],
               [1, 10.6, 28.4, 25, "第一条字幕"],
               [2, 10.0, 13.6, 0.8, "第二条字幕"]],
@@ -56,7 +58,8 @@ $PY $SK/from_video.py reburn <work> [--srt 改过的.srt] --nosub      # 用户�
 - 文字相同的相邻段自动合并成一条字幕（可跨越被剪掉的空档）；字幕写 `""` 表示该段不配字幕。
 - 保留段必须按时间递增、不重叠；段与段之间的空隙自动成为 cut。
 - `focus` / `blur` 的时间可带 `src`（源内时间），坐标一律源像素；`style` 透传 render.py，缺省自动用微软雅黑。
-- `edit.json` 也可手写（字段 `video / crop / cut / speed / focus / blur / style / name`，时间=合并片时间），但多段素材、频繁调倍速时用 plan 不易错。
+- `out_dir`：成片输出目录（相对 work），`init` 生成的 plan.json 默认 `../output`；不写则输出到 work 本身。
+- `edit.json` 也可手写（字段 `video / crop / cut / speed / focus / blur / style / name / out_dir`，时间=合并片时间），但多段素材、频繁调倍速时用 plan 不易错。
 - 用户改了成片 `.srt` 后走 `reburn`；之后若还要改剪辑，先把字幕改动同步回 plan.json，否则再跑 `plan` 会覆盖。
 
 ## 4 节奏与时长
@@ -137,7 +140,8 @@ ffmpeg -i main.mov -i supp.mov -filter_complex \
 
 ## 10 交付与迭代
 
-- 每次给三件：`_vN.mp4`（字幕烧入）、`_vN.srt`（可改）、`_vN_无字幕.mp4`（剪映用：导入字幕 → 选一条设样式 → 应用到全部）。版本号只增不覆盖。
+- 每次给三件：`_vN.mp4`（字幕烧入）、`_vN.srt`（可改）、`_vN_无字幕.mp4`（剪映用：导入字幕 → 选一条设样式 → 应用到全部），都在项目 `output/`，版本号只增不覆盖。
+- 交付前更新项目 `README.md`（当前版本、待确认/待补录）和 `CHANGELOG.md`（本版：用户反馈 → 改动）；项目专用脚本放 `scripts/`。
 - 回复里写清：时长、字幕条数、按节拍的画面/字幕表、推近/打码处理了哪些、剪掉了什么及原因。
 - 主动指出**素材缺口**：缺入口（录屏直接从功能页开始）、想表达但没拍到的（如配置了 4 项只演了 1 项、想讲"效果更好"却没有对比录屏），建议补录什么。
 - 对外视频提醒：浏览器顶栏（标签页、含内部 ID 的地址栏、"有新版浏览器"提示）是否裁掉，由用户决定后再加 `crop`。

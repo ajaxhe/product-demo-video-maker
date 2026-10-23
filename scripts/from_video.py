@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """from_video.py — 方案 B：用户自己静音录屏 → Agent 看关键帧配字幕 → 烧字幕成片 + 可编辑 .srt
 
+  init <项目名> [--src 录屏...] [--root DIR]
+      在固定根目录（默认 ~/Movies/demo-videos，环境变量 PDVM_ROOT 可改）下建项目目录：
+      source/（原始录屏软链接） work/（分析、合并片、plan/edit、抽帧） output/（全部版本成片） scripts/ + README.md + CHANGELOG.md
   analyze <video> [--work DIR] [--crop x,y,w,h]
       活动曲线 → 关键帧联系表 keyframes_XX.jpg（Agent 用 Read 看图）+ analysis.json
       + 自动生成 edit.json（掐头去尾 cut、静止段 speed 建议）
@@ -33,7 +36,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import FFMPEG, FFPROBE, ensure_dir, load_json, probe, save_json  # noqa: E402
+from common import FFMPEG, FFPROBE, PROJECTS_ROOT, ensure_dir, load_json, probe, save_json  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 PLAIN = {"background": "none", "out_size": "source", "spotlight": 0, "intro": None, "outro": None}
@@ -208,6 +211,12 @@ def make_keep(dur, cut, speed):
     return [[round(a, 3), round(b, 3), f] for a, b, f in keep]
 
 
+def out_dir(work, ed):
+    """成片输出目录：edit.json 的 out_dir（相对 work），项目目录结构下为 ../output；未设置则为 work 本身"""
+    d = (work / ed["out_dir"]).resolve() if ed.get("out_dir") else work
+    return ensure_dir(d)
+
+
 def next_version(work, name):
     n = 1
     while (work / f"{name}_v{n}.mp4").exists():
@@ -258,7 +267,8 @@ def build(work, out_name=None, nosub=False):
           "duration": info["duration"], "cursor_mode": "real", "steps": steps, "style": style}
     save_json(work / "events.json", ev)
     name = ed.get("name", "成片")
-    out = work / (out_name or f"{name}_v{next_version(work, name)}.mp4")
+    od = out_dir(work, ed)
+    out = od / (out_name or f"{name}_v{next_version(od, name)}.mp4")
     render_events(work / "events.json", out)
     print(f"[ok] 可编辑字幕：{out.with_suffix('.srt')}（改完执行 reburn）")
     if nosub:  # 无字幕版（推近/打码/剪辑相同），给剪映里自己加字幕用
@@ -276,7 +286,9 @@ def cmd_reburn(a):
     work = Path(a.work).resolve()
     ed = load_json(work / "edit.json")
     name = ed.get("name", "成片")
-    srt = Path(a.srt) if a.srt else max(work.glob(f"{name}_v*.srt"), key=lambda p: p.stat().st_mtime)
+    od = out_dir(work, ed)
+    cands = [p for p in od.glob(f"{name}_v*.srt") if not p.stem.endswith("_无字幕")]
+    srt = Path(a.srt) if a.srt else max(cands, key=lambda p: p.stat().st_mtime)
     info = probe(Path(ed["video"]))
     from render import TimeMap
     tm = TimeMap(info["duration"], [], None, None, make_keep(info["duration"], ed.get("cut"), ed.get("speed")))
@@ -372,6 +384,7 @@ def cmd_plan(a):
     if "font" not in style and (msyh / "msyh.ttc").exists():
         style["font"], style["font_bold"] = str(msyh / "msyh.ttc"), str(msyh / "msyhbd.ttc")
     save_json(work / "edit.json", {"video": str(video), "crop": pl.get("crop"), "name": pl.get("name", "成片"),
+                                   "out_dir": pl.get("out_dir"),
                                    "cut": cut, "speed": speed, "focus": conv(pl.get("focus")),
                                    "blur": conv(pl.get("blur")), "style": style})
     # 字幕：相邻且文字相同的保留段合并成一条（跨越被剪掉的空档也行，渲染时按时间轴映射）
@@ -394,16 +407,61 @@ def cmd_plan(a):
         print(f"  [!] 与目标 {a.target}s 相差 {total - a.target:+.1f}s：超了先压等待/输入段，短了先放慢展示段")
 
 
+# ---------------------------------------------------------------- 项目目录
+
+README_TPL = """# {name}
+
+- 素材：见 source/（原始录屏的软链接，原文件不复制）
+- 目标时长：
+- 当前版本：（每次交付更新，写 output/ 里最新的 _vN）
+- 剪辑计划：work/plan.json（改剪辑只改它，再 plan + build）
+- 待确认 / 待补录：
+
+## 目录
+- source/  原始录屏（软链接）
+- work/    analyze 结果、combined.mp4、plan.json、edit.json、captions_src.srt、抽帧检查图
+- output/  全部版本成片：<名称>_vN.mp4 / _vN.srt / _vN_无字幕.mp4（只增不覆盖）
+- scripts/ 本项目专用的辅助脚本
+- CHANGELOG.md 每一版改了什么（用户反馈 → 改动）
+"""
+
+
+def cmd_init(a):
+    root = Path(a.root).expanduser() if a.root else PROJECTS_ROOT
+    proj = root / a.name
+    for sub in ("source", "work", "output", "scripts", "work/_tmp"):
+        ensure_dir(proj / sub)
+    if not (proj / "README.md").exists():
+        (proj / "README.md").write_text(README_TPL.format(name=a.name), encoding="utf-8")
+    if not (proj / "CHANGELOG.md").exists():
+        (proj / "CHANGELOG.md").write_text(f"# {a.name} 版本记录\n\n| 版本 | 日期 | 反馈 / 目标 | 改动 |\n|---|---|---|---|\n",
+                                           encoding="utf-8")
+    import os
+    for v in a.src or []:
+        v = Path(v).expanduser().resolve()
+        link = proj / "source" / v.name
+        if not link.exists():
+            os.symlink(v, link)
+    pl = proj / "work" / "plan.json"
+    if not pl.exists():
+        save_json(pl, {"name": a.name, "out_dir": "../output", "sources": "combined.sources.json",
+                       "segments": [], "focus": [], "blur": [], "style": {}})
+    print(f"[ok] 项目目录 {proj}")
+    print(f"     source/ {len(list((proj / 'source').iterdir()))} 个素材；work/plan.json 已就绪（out_dir=../output）")
+    print(f"     命令前缀：cd {proj / 'work' / '_tmp'} && export TMPDIR=$PWD;")
+
+
 def main():
     ap = argparse.ArgumentParser()
     sp = ap.add_subparsers(dest="cmd", required=True)
+    i = sp.add_parser("init"); i.add_argument("name"); i.add_argument("--src", nargs="*"); i.add_argument("--root")
     x = sp.add_parser("analyze"); x.add_argument("video"); x.add_argument("--work"); x.add_argument("--crop")
     b = sp.add_parser("build"); b.add_argument("work"); b.add_argument("--nosub", action="store_true")
     r = sp.add_parser("reburn"); r.add_argument("work"); r.add_argument("--srt"); r.add_argument("--nosub", action="store_true")
     c = sp.add_parser("concat"); c.add_argument("out"); c.add_argument("videos", nargs="+")
     p = sp.add_parser("plan"); p.add_argument("work"); p.add_argument("--target", type=float)
     a = ap.parse_args()
-    {"analyze": cmd_analyze, "build": cmd_build, "reburn": cmd_reburn,
+    {"init": cmd_init, "analyze": cmd_analyze, "build": cmd_build, "reburn": cmd_reburn,
      "concat": cmd_concat, "plan": cmd_plan}[a.cmd](a)
 
 

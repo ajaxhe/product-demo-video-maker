@@ -20,8 +20,12 @@ Mac 代录 ─rec_mac.py/ui.py─┘
 ## 快速开始
 
 ```bash
+# 0 建项目目录：~/Movies/demo-videos/<项目名>/{source,work,output,scripts} + README + CHANGELOG（PDVM_ROOT 可改根目录）
+python3 scripts/from_video.py init my-demo --src rec1.mov rec2.mov
+cd ~/Movies/demo-videos/my-demo   # 以下 ./work 即项目的 work/
+
 # 1 分析录屏：生成关键帧联系表 + 活动段
-python3 scripts/from_video.py analyze your_recording.mov --work ./work/v1
+python3 scripts/from_video.py analyze rec1.mov --work ./work/analyze/rec1
 
 # 2 多段录屏时先合并（单段跳过）
 python3 scripts/from_video.py concat ./work/combined.mp4 rec1.mov rec2.mov rec3.mov
@@ -29,7 +33,7 @@ python3 scripts/from_video.py concat ./work/combined.mp4 rec1.mov rec2.mov rec3.
 # 3 AI 阅读 keyframes_*.jpg，写 work/plan.json（保留段 + 倍速 + 字幕 + 推近 + 打码），生成剪辑参数
 python3 scripts/from_video.py plan ./work --target 30
 
-# 4 渲染：成片_v1.mp4 + 可编辑成片_v1.srt + 成片_v1_无字幕.mp4
+# 4 渲染到 output/：成片_v1.mp4 + 可编辑成片_v1.srt + 成片_v1_无字幕.mp4
 python3 scripts/from_video.py build ./work --nosub
 
 # 5 改完成片 .srt 后重烧下一版

@@ -21,12 +21,29 @@ PY=python3   # 需安装 opencv-python pillow；Web 录制另需 playwright，Ma
 
 ## 第 0 步：本机执行约束（不遵守必翻车）
 
-1. 所有命令非沙箱运行（`dangerouslyDisableSandbox: true`），固定前缀 `cd <work>/_tmp && export TMPDIR=$PWD;`。`_tmp` 用 Write 工具写占位文件来创建（非沙箱 `mkdir` 不生效）。
+1. 所有命令非沙箱运行（`dangerouslyDisableSandbox: true`），固定前缀 `cd <项目>/work/_tmp && export TMPDIR=$PWD;`（`init` 会建好 `_tmp`；其他目录缺 `_tmp` 时用 Write 工具写占位文件来创建）。
 2. 本机安全中心拦截删除；不覆盖旧文件，成片版本号递增。复制用 `cat src > dst`（`cp` 静默失败）。
 3. 输出里的 `sitecustomize ... temporary directory`、`Blocked by Security Center` 是噪音，只看脚本的 `[ok]` / `[x]` / `[!]`。
 4. 渲染超过 2 分钟的任务用 `run_in_background: true`；不要前台 `| tail` 等长任务。
 5. zsh 不做变量分词：时间点、坐标等参数逐个写进命令，别塞进一个变量再展开。
 6. 看图（关键帧、抽帧、网格图）用 ViewImage，Read 读图片只返回路径。
+
+## 项目目录（产物分门别类，方便查找与后续修改）
+
+每个视频一个项目，统一放在固定根目录 `~/Movies/demo-videos/`（环境变量 `PDVM_ROOT` 可改）下，开工第一步 `init`：
+
+```
+<ROOT>/<项目名>/            # 项目名 = 场景_功能，如「2026发布会_AI搜索演示」
+  README.md                  # 用途、素材、目标时长、当前版本、待确认/待补录（每次交付更新）
+  CHANGELOG.md               # 每版：用户反馈 → 改动（每次交付追加一行）
+  source/                    # 原始录屏的软链接（不复制大文件）
+  work/                      # analyze/、combined.mp4 + sources.json、plan.json、edit.json、字幕源、抽帧检查图、_tmp/
+  output/                    # 全部版本成片 _vN.mp4 / _vN.srt / _vN_无字幕.mp4（只增不覆盖）
+  scripts/                   # 本项目专用的辅助脚本
+```
+
+- 不把产物散落在会话工作区；用户继续改某个视频时，先到根目录找到项目，读 README 和 CHANGELOG 接上上下文，再改 `work/plan.json`。
+- 同一项目续做不新建项目；新视频（换功能/换场景）才新建。
 
 ## 默认偏好
 
@@ -56,7 +73,8 @@ PY=python3   # 需安装 opencv-python pillow；Web 录制另需 playwright，Ma
 ## 默认流程速览（用户录屏）
 
 ```bash
-$PY $SK/from_video.py analyze <录屏> --work <work>/v1                     # 每段：keyframes_*.jpg + analysis.json
+$PY $SK/from_video.py init <项目名> --src <录屏1> <录屏2> ...              # 建项目目录（work = <ROOT>/<项目名>/work）
+$PY $SK/from_video.py analyze <录屏> --work <work>/analyze/<录屏名>         # 每段：keyframes_*.jpg + analysis.json
 $PY $SK/from_video.py concat <work>/combined.mp4 <录屏1> <录屏2> ...       # 多段时：→ combined.sources.json
 $PY $SK/inspect_tool.py gridframes <源录屏> t1 t2 ... --out-dir <work>    # 读推近/打码坐标（标签=源像素）
 # 写 <work>/plan.json：保留段 [源序号,t0,t1,倍速,字幕] + focus + blur
@@ -80,7 +98,7 @@ $PY $SK/inspect_tool.py frames <成片.mp4> 1.8 5.1 8.5 ...   # → <成片>_fra
 - 时长达标；每条字幕至少 3s 可读。
 
 同一问题改 3 次仍不过，停下把抽帧图给用户看并问方向。
-交付：`present_files` 给 mp4 + srt + 无字幕版；回复写清时长、字幕条数、节拍/字幕表、推近/打码与剪掉的内容、素材缺口与待确认项。
+交付：`present_files` 给 mp4 + srt + 无字幕版；回复写清时长、字幕条数、节拍/字幕表、推近/打码与剪掉的内容、素材缺口与待确认项，以及项目目录路径。交付前更新项目 README（当前版本、待确认）和 CHANGELOG（本版反馈 → 改动）。
 
 ## 遇到问题 / 沉淀经验
 
