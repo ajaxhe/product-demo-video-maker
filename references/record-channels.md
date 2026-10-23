@@ -58,7 +58,7 @@ $PY $SK/bursts_to_events.py <work> <work>/b1.log.json ... && $PY $SK/render.py <
 
 ## 分镜规范（A/B/C 写 storyboard 时）
 
-1. 开场 `wait` 2 秒交代全貌。
+1. 开场从上一级页面点进功能入口（1–3s，入口点击带推近），再 `wait` 1–2 秒交代全貌。
 2. 一步一个动作一句字幕，≤20 字；字幕与推近的取舍同 edit-recording.md §5、§6（只写看得见的、推近宁少勿多）。
 3. 概念卡（用户要求时才加）放在界面稳定的步骤，不放在会弹窗/跳转的 click 步。
 4. 强调结果时，点击后加 `highlight` 对准结果；结果页、概览页多给停留时间。
