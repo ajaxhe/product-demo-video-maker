@@ -21,6 +21,7 @@ Mac 代录 ─rec_mac.py/ui.py─┘
 
 ```bash
 # 0 建项目目录：~/Movies/demo-videos/<项目名>/{source,work,output,scripts} + README + CHANGELOG（PDVM_ROOT 可改根目录）
+#   --src 的录屏会复制归档到 source/（加 --link 则只建软链接）
 python3 scripts/from_video.py init my-demo --src rec1.mov rec2.mov
 cd ~/Movies/demo-videos/my-demo   # 以下 ./work 即项目的 work/
 

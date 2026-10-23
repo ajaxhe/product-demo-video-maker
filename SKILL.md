@@ -36,12 +36,13 @@ PY=python3   # 需安装 opencv-python pillow；Web 录制另需 playwright，Ma
 <ROOT>/<项目名>/            # 项目名 = 场景_功能，如「2026发布会_AI搜索演示」
   README.md                  # 用途、素材、目标时长、当前版本、待确认/待补录（每次交付更新）
   CHANGELOG.md               # 每版：用户反馈 → 改动（每次交付追加一行）
-  source/                    # 原始录屏的软链接（不复制大文件）
+  source/                    # 原始录屏归档副本（init --src 自动复制；补录/补发的素材也复制进来）
   work/                      # analyze/、combined.mp4 + sources.json、plan.json、edit.json、字幕源、抽帧检查图、_tmp/
   output/                    # 全部版本成片 _vN.mp4 / _vN.srt / _vN_无字幕.mp4（只增不覆盖）
   scripts/                   # 本项目专用的辅助脚本
 ```
 
+- 原始素材必须归档进 source/（原件常在下载目录，会被清理或改名）；concat / analyze 一律读 source/ 里的副本。
 - 不把产物散落在会话工作区；用户继续改某个视频时，先到根目录找到项目，读 README 和 CHANGELOG 接上上下文，再改 `work/plan.json`。
 - 同一项目续做不新建项目；新视频（换功能/换场景）才新建。
 

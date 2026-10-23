@@ -16,7 +16,7 @@ $PY $SK/from_video.py build <work> --nosub                         # → output/
 $PY $SK/from_video.py reburn <work> [--srt 改过的.srt] --nosub      # 用户只改字幕时
 ```
 
-- 先确认源文件存在：用户可能中途改名或漏发素材。报 No such file 时 `ls` 目录按大小/修改时间找。
+- 先确认源文件存在：用户可能中途改名或漏发素材。报 No such file 时 `ls` 目录按大小/修改时间找。找到后复制进项目 `source/`（补发的素材同样），之后只读 `source/` 里的副本。
 - 窗口录制不需要 crop；全屏录制才填 `crop`。成片尺寸 = 录屏原尺寸（`out_size: source`）。
 - 看不清的段用 `inspect_tool.py frames <录屏> t1 t2 ...` 补抽；要读坐标用 `gridframes`（§6）。
 
@@ -111,7 +111,7 @@ $PY $SK/from_video.py reburn <work> [--srt 改过的.srt] --nosub      # 用户�
 
 ## 8 多段素材与补录
 
-- **多段录屏 / 漏发的素材**：`concat` 统一处理（各段先归一 30fps 再无损拼接，offset 按帧数算，避免 60fps 素材半帧误差）。用户补发素材时按故事节拍放进正确位置重新 `concat`，plan.json 里改源序号即可，各段内的 focus/字幕时间不用重算。
+- **多段录屏 / 漏发的素材**：先复制进 `source/`，再 `concat` 统一处理（各段先归一 30fps 再无损拼接，offset 按帧数算，避免 60fps 素材半帧误差）。用户补发素材时按故事节拍放进正确位置重新 `concat`，plan.json 里改源序号即可，各段内的 focus/字幕时间不用重算。
 - 各段分辨率必须一致（同一窗口尺寸录制），不一致 `concat` 直接报错。
 - **插入一段补录到主录中间**（同一页面状态接续）：
 

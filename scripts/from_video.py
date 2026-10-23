@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """from_video.py — 方案 B：用户自己静音录屏 → Agent 看关键帧配字幕 → 烧字幕成片 + 可编辑 .srt
 
-  init <项目名> [--src 录屏...] [--root DIR]
+  init <项目名> [--src 录屏...] [--link] [--root DIR]
       在固定根目录（默认 ~/Movies/demo-videos，环境变量 PDVM_ROOT 可改）下建项目目录：
-      source/（原始录屏软链接） work/（分析、合并片、plan/edit、抽帧） output/（全部版本成片） scripts/ + README.md + CHANGELOG.md
+      source/（原始录屏归档副本；--link 改为软链接） work/（分析、合并片、plan/edit、抽帧） output/（全部版本成片） scripts/ + README.md + CHANGELOG.md
   analyze <video> [--work DIR] [--crop x,y,w,h]
       活动曲线 → 关键帧联系表 keyframes_XX.jpg（Agent 用 Read 看图）+ analysis.json
       + 自动生成 edit.json（掐头去尾 cut、静止段 speed 建议）
@@ -320,7 +320,7 @@ def cmd_concat(a):
                         "-c:v", "libx264", "-preset", "ultrafast", "-crf", "16", "-pix_fmt", "yuv420p", str(p)],
                        check=True)
         n = _frames(p)
-        sources.append({"src": i, "file": str(Path(v).resolve()), "offset": round(t, 3), "duration": round(n / 30, 3)})
+        sources.append({"src": i, "file": str(Path(v).absolute()), "offset": round(t, 3), "duration": round(n / 30, 3)})
         parts.append(p)
         t += n / 30
     lst = out.with_name(out.stem + "_list.txt")
@@ -411,14 +411,14 @@ def cmd_plan(a):
 
 README_TPL = """# {name}
 
-- 素材：见 source/（原始录屏的软链接，原文件不复制）
+- 素材：见 source/（原始录屏归档副本）
 - 目标时长：
 - 当前版本：（每次交付更新，写 output/ 里最新的 _vN）
 - 剪辑计划：work/plan.json（改剪辑只改它，再 plan + build）
 - 待确认 / 待补录：
 
 ## 目录
-- source/  原始录屏（软链接）
+- source/  原始录屏归档副本（补录、补发的素材也复制进来）
 - work/    analyze 结果、combined.mp4、plan.json、edit.json、captions_src.srt、抽帧检查图
 - output/  全部版本成片：<名称>_vN.mp4 / _vN.srt / _vN_无字幕.mp4（只增不覆盖）
 - scripts/ 本项目专用的辅助脚本
@@ -437,11 +437,18 @@ def cmd_init(a):
         (proj / "CHANGELOG.md").write_text(f"# {a.name} 版本记录\n\n| 版本 | 日期 | 反馈 / 目标 | 改动 |\n|---|---|---|---|\n",
                                            encoding="utf-8")
     import os
+    import shutil
     for v in a.src or []:
         v = Path(v).expanduser().resolve()
-        link = proj / "source" / v.name
-        if not link.exists():
-            os.symlink(v, link)
+        dst = proj / "source" / v.name
+        if dst.exists():
+            continue
+        if a.link:
+            os.symlink(v, dst)
+        else:  # 默认复制归档：原件常在 Downloads，会被清理/改名
+            shutil.copy2(v, dst)
+            if dst.stat().st_size != v.stat().st_size:
+                sys.exit(f"[x] 复制不完整：{dst}")
     pl = proj / "work" / "plan.json"
     if not pl.exists():
         save_json(pl, {"name": a.name, "out_dir": "../output", "sources": "combined.sources.json",
@@ -455,6 +462,7 @@ def main():
     ap = argparse.ArgumentParser()
     sp = ap.add_subparsers(dest="cmd", required=True)
     i = sp.add_parser("init"); i.add_argument("name"); i.add_argument("--src", nargs="*"); i.add_argument("--root")
+    i.add_argument("--link", action="store_true")
     x = sp.add_parser("analyze"); x.add_argument("video"); x.add_argument("--work"); x.add_argument("--crop")
     b = sp.add_parser("build"); b.add_argument("work"); b.add_argument("--nosub", action="store_true")
     r = sp.add_parser("reburn"); r.add_argument("work"); r.add_argument("--srt"); r.add_argument("--nosub", action="store_true")
