@@ -295,15 +295,24 @@ class Card:
             self.add(text_layer(line, F["title"], self.S(100)), 120, y, 0.35 + 0.15 * i); y += 132
         y += 40
         if c.get("sub"):
-            self.add(text_layer(c["sub"], F["text"], self.S(36), self.sub_c), 120, y, 0.8)
+            # 副标题过长时自动缩小字号直到一行放得下（右侧留出与左侧相同的边距）
+            sz, maxw = 36, self.W - self.S(120) * 2
+            while sz > 24 and font(F["text"], self.S(sz)).getlength(c["sub"]) > maxw:
+                sz -= 1
+            self.add(text_layer(c["sub"], F["text"], self.S(sz), self.sub_c), 120, y, 0.8)
         x, t = 120, 1.1
+        py0 = 905                                       # 标签胶囊顶边（1920 基准）
         for i, s in enumerate(c.get("flow", [])):
             p = pill(f"{i + 1:02d}  {s}", F["title"], self.S(32))
-            self.add(p, x, 905, t)
+            self.add(p, x, py0, t)
             x += p.width / self.k + 18
             if i < len(c["flow"]) - 1:
+                # 箭头按「字形墨迹」与胶囊垂直居中对齐（不能按文字框顶对齐，否则箭头会偏低）
+                af = font(F["text"], self.S(34))
+                l_, t_, r_, b_ = af.getbbox("→")
                 ar = text_layer("→", F["text"], self.S(34), (200, 210, 240))
-                self.add(ar, x, 915, t + 0.08)
+                ay = py0 + (p.height / 2 - (t_ + b_) / 2) / self.k
+                self.add(ar, x, ay, t + 0.08)
                 x += ar.width / self.k + 18
             t += 0.15
 
