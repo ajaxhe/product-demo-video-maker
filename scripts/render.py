@@ -13,6 +13,7 @@
   python render.py <work>/events.json --out x.mp4 --preview 12   # 只渲染前 12 秒（调样式用）
 样式覆盖：events.json 的 "style" 字段（见 DEFAULT_STYLE），或 --style style.json
 """
+import re
 import argparse
 import math
 import subprocess
@@ -160,7 +161,36 @@ def wrap(text, font, max_w):
 
 # ---------------------------------------------------------------- 预渲染素材
 
+_MARK = re.compile(r"\*\*(.+?)\*\*")
+
+
+def parse_marks(text):
+    """字幕里用 **词** 标出要着色突出的词：返回 (去掉标记的纯文本, [词, ...])。.srt 永远写纯文本"""
+    words = _MARK.findall(text or "")
+    return _MARK.sub(r"\1", text or ""), words
+
+
+def draw_runs(d, x, y, line, font, hl_words=None, fill=(255, 255, 255, 255), hl_fill=(255, 214, 102, 255)):
+    """画一行字；hl_words 里的词用 hl_fill 着色（字幕里要突出「一键」「免费」这类卖点词时用）。
+    按字符着色、逐段累加 x 偏移（中文无连字，误差可忽略）。"""
+    mark = [False] * len(line)
+    for w in hl_words or []:
+        i = line.find(w)
+        while w and i >= 0:
+            for j in range(i, i + len(w)):
+                mark[j] = True
+            i = line.find(w, i + len(w))
+    i = 0
+    while i < len(line):
+        j = i
+        while j < len(line) and mark[j] == mark[i]:
+            j += 1
+        d.text((x + font.getlength(line[:i]), y), line[i:j], font=font, fill=hl_fill if mark[i] else fill)
+        i = j
+
+
 def make_caption(text, fonts, st, W):
+    text, marked = parse_marks(text)
     f = fonts.get(st["caption_size"], bold=True)
     max_w = int(W * st["caption_max_w"])
     lines = wrap(text, f, max_w - 64)
@@ -172,10 +202,13 @@ def make_caption(text, fonts, st, W):
     d.rounded_rectangle((0, 0, w - 1, h - 1), radius=min(18, h // 2), fill=(12, 14, 20, int(255 * st["caption_alpha"])))
     # 按汉字墨迹（「国」的实际笔画上下沿）做视觉垂直居中，不同字体的行高/基线差异都能对齐
     _, it, _, ib = f.getbbox("国")
+    # 突出词 = 文本里的 **词** 标记 + style.caption_highlight_map[纯文本]（reburn 后标记丢失也能保留）+ style.caption_highlight（全片通用）
+    hl = marked + list((st.get("caption_highlight_map") or {}).get(text, [])) + list(st.get("caption_highlight") or [])
+    hl_c = tuple(st.get("caption_highlight_color", (255, 214, 102))) + (255,)
     for i, l in enumerate(lines):
         lw = f.getlength(l)
         slot_c = 14 + i * lh + lh / 2
-        d.text(((w - lw) / 2, slot_c - (it + ib) / 2), l, font=f, fill=(255, 255, 255, 255))
+        draw_runs(d, (w - lw) / 2, slot_c - (it + ib) / 2, l, f, hl, hl_fill=hl_c)
     return np.array(im)
 
 
@@ -938,7 +971,7 @@ def main():
         o0, o1 = tm.s2o(s["t0"]) + intro_t, min(tm.s2o(s["t1"]), main_dur) + intro_t
         if o1 <= o0:
             continue
-        srt.append(f"{n}\n{fmt(o0)} --> {fmt(o1)}\n{s['caption']}\n")
+        srt.append(f"{n}\n{fmt(o0)} --> {fmt(o1)}\n{parse_marks(s['caption'])[0]}\n")
         n += 1
     srt_path = out.with_suffix(".srt")
     srt_path.write_text("\n".join(srt), encoding="utf-8")

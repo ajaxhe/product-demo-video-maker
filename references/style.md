@@ -6,6 +6,7 @@
 |---|---|---|
 | `font` / `font_bold` | 苹方 | 常规/粗体字体文件。默认用微软雅黑 msyh.ttc / msyhbd.ttc |
 | `caption_size` / `caption_bottom` / `caption_alpha` | 40 / 30 / — | 字幕字号 / 距底边 / 黑底透明度（按 1920 宽基准，`out_size:source` 时自动等比放大） |
+| `caption_highlight` / `caption_highlight_color` | [] / `[255,214,102]` | 全片通用的突出词（一般不用）；单条字幕里用 `**词**` 标记更常用，见 edit-recording.md §5。`caption_highlight_map` 由 `plan` 自动生成，别手写 |
 | `out_w`/`out_h`/`fps` | 1920/1080/30 | 输出规格 |
 | `out_size` | null | `"source"`＝成片尺寸跟随（裁切后的）源画面 |
 | `crop` | null | `[x,y,w,h]` 源像素，或 `"window"`（rec_mac `--app` 记录的窗口） |
@@ -25,4 +26,6 @@
 | `theme` | light | `dark` 深色主视觉（仅片头片尾/概念卡生效） |
 | `bgm` | null | `{"file":"x.mp3","volume":0.12}` |
 
-样式预设：`assets/style_plain_ui.json`（默认：纯界面 + 微软雅黑字幕）、`assets/style_summit_dark.json`（深色大会卡片，用户要求时）。
+样式预设：`assets/style_plain_ui.json`（默认：纯界面 + 微软雅黑字幕）、`assets/style_summit_dark.json`（深色大会卡片，用户要求、且没有参考 PPT 时）。
+
+多个功能片串成故事线、用参考 PPT 做章节过渡页时不走 intro/outro，用 `scripts/story.py`（配置 `work/story.json`，见 `references/story-cards.md`、`assets/story_example.json`）。

@@ -1,0 +1,49 @@
+{
+ "_说明": "story.py 的配置，放在 <项目>/work/story.json。相对路径相对项目根目录；时间 = 章节素材内时间。删掉 _ 开头的说明字段不影响运行。",
+ "name": "某场景故事线",
+ "out_dir": "output",
+ "size": [1920, 1080],
+ "target": 120,
+ "fonts": {
+  "_说明": "title/text 用 PPT 的标题、正文字体（story.py ppt 会列出 PPT 用的字体以及本机有没有）；caption 是字幕，固定用微软雅黑粗体，和子片保持一致",
+  "title": "~/Library/Fonts/TencentSans-W7.otf",
+  "text": "~/Library/Fonts/TencentSans-W3.otf",
+  "caption": "/Applications/Microsoft Word.app/Contents/Resources/DFonts/msyhbd.ttc"
+ },
+ "card_theme": {
+  "_说明": "从 PPT 底图里取色：gradient 用于章节编号和结尾金句的渐变，accent 用于标签底色",
+  "gradient": ["#C65CFF", "#4A6EFF", "#28D2E6"],
+  "kicker": "#AABEFF",
+  "sub": "#D6DCEE",
+  "accent": "#4F6EFF"
+ },
+ "crop": [0, 168, 3024, 1700],
+ "chapters": {
+  "_说明": "每章对应一个已定稿的子项目；story.py chapters 读子项目 work/edit.json 重新渲染，输出到 work/chapters/<key>.mp4。crop 可按章覆盖",
+  "import": {"project": "~/Movies/demo-videos/某大会_导入演示"},
+  "graph": {"project": "~/Movies/demo-videos/某大会_图谱演示"}
+ },
+ "cards": {
+  "open": {"layout": "cover", "bg": "assets/ppt/image1.jpg", "logo": "assets/ppt/image2.png", "dur": 5.2,
+           "kicker": "产品名 · 某行业某场景",
+           "title": ["客户痛点一句话", "抛出问题？"],
+           "sub": "某行业品牌 · 某业务部门（演示使用模拟数据）",
+           "flow": ["功能一", "功能二"]},
+  "ch1": {"layout": "chapter", "bg": "assets/ppt/image12.png", "dur": 3.2, "no": "01",
+          "title": "能力层 · 功能一", "story": "这一章在客户故事里解决什么问题（一句话）", "tag": "价值短语"},
+  "ch2": {"layout": "chapter", "bg": "assets/ppt/image12.png", "dur": 3.2, "no": "02",
+          "title": "能力层 · 功能二", "story": "一句话故事", "tag": "价值短语"},
+  "end": {"layout": "end", "bg": "assets/ppt/image1.jpg", "logo": "assets/ppt/image2.png", "dur": 4.2,
+          "kicker": "产品名 · 发布主题", "title": ["演讲主标题"], "sub": "演讲金句",
+          "pillars": [["能力一", "一句价值"], ["能力二", "一句价值"]]}
+ },
+ "timeline": [
+  {"card": "open"},
+  {"card": "ch1", "xf": 0.5},
+  {"clip": ["import", 0.0, 2.95, 0.72], "xf": 0.5, "caps": [[0.0, 2.95, "入口：A → B"]]},
+  {"clip": ["import", 6.3, 20.6, 1.0], "xf": 0.3, "caps": [[6.3, 12.0, "字幕一"], [12.0, 20.6, "字幕二"]]},
+  {"card": "ch2", "xf": 0.5},
+  {"clip": ["graph", 0.0, 12.0, 1.0], "xf": 0.5, "caps": [[0.0, 12.0, "字幕"]]},
+  {"card": "end", "xf": 0.5}
+ ]
+}

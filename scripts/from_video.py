@@ -350,12 +350,21 @@ def cmd_plan(a):
     def T(src, t):
         return round(t + (offs.get(src, 0.0) if src else 0.0), 3)
 
+    from render import parse_marks
+    hl_map = {}   # 字幕里的 **词** 标记 → 纯文本字幕 + caption_highlight_map（突出「一键」「免费」这类卖点词）
+
+    def cap(text):
+        plain, words = parse_marks(text)
+        if words:
+            hl_map[plain] = words
+        return plain
+
     segs = []  # [t0, t1, speed, caption]（合并片时间）
     for s in pl["segments"]:
         if len(s) == 5:
-            segs.append([T(s[0], s[1]), T(s[0], s[2]), float(s[3]), s[4]])
+            segs.append([T(s[0], s[1]), T(s[0], s[2]), float(s[3]), cap(s[4])])
         else:
-            segs.append([float(s[0]), float(s[1]), float(s[2]), s[3]])
+            segs.append([float(s[0]), float(s[1]), float(s[2]), cap(s[3])])
     cut, speed, prev = [], [], 0.0
     for t0, t1, f, _ in segs:
         if t0 < prev - 1e-6:
@@ -380,6 +389,8 @@ def cmd_plan(a):
         return res
 
     style = dict(pl.get("style") or {})
+    if hl_map:
+        style["caption_highlight_map"] = hl_map
     msyh = Path("/Applications/Microsoft Word.app/Contents/Resources/DFonts")
     if "font" not in style and (msyh / "msyh.ttc").exists():
         style["font"], style["font_bold"] = str(msyh / "msyh.ttc"), str(msyh / "msyhbd.ttc")

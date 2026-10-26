@@ -17,6 +17,7 @@
 6. **zsh 不做变量分词**：`T="1 2 3"; cmd $T` 会把整串当一个参数 → 静默无效 / 抽帧 0 张。→ 参数逐个写死，或用 `${=T}`。
 7. **缺 cv2 / pillow，analyze 报 ModuleNotFoundError** → `python3 -m pip install --user opencv-python pillow numpy`。
 8. **`find /` 全盘找字体 2 分钟超时** → 直接查 `/Applications/Microsoft *.app/Contents/Resources/DFonts`。PIL 加载 PingFang.ttc 报 `cannot open resource` → 用 Hiragino / 微软雅黑。
+8a. **PPT 的底图在页面 XML 里找不到**：大图在版式 / 母版里（`ppt/slideLayouts/media/`），不在 `ppt/slides/media/`；也没装 LibreOffice，没法整页渲染。→ `story.py ppt` 直接解 zip，导出版式图片并出联系表。PPT 里的腾讯体等字体可能已装在 `~/Library/Fonts/`（`fc-list | grep -i tencent`），其余方正等字体本机多半没有，用微软雅黑代替。
 9. **Read 工具读 .jpg 只返回「请用 ViewImage」** → 看关键帧、抽帧图一律用 ViewImage，query 写清要读的内容（时间戳、文字、坐标）。
 
 ## B Web 录制（rec_web.py）
@@ -42,6 +43,9 @@
 21. **镜头运动机制**：临界阻尼弹簧（`spring`=7）+ 对数缩放插值，无过冲；推近窗口间隔 <`zoom_hold_gap`(1.2s) 才保持推近直接平移，否则先拉远再推近 → 用户感知为"一会放大一会缩小"。取舍原则见 edit-recording §6。
 22. **box 推近不生效 / 目标被裁**：box 推近倍数 = min(zoom, 0.8×屏宽/w, 0.8×屏高/h)，<1.15 直接不推；横跨整屏的元素因此推不动。目标被裁多半是坐标读成了显示像素（见 F29）。
 23. **长录素材（~30 分钟 3K）渲染慢** → VideoSource 遇到大段剪切直接 seek，不逐帧解码。
+23a. **对成片再裁（去浏览器顶栏 / 改 16:9），推近画面顶部被切掉**：成片里推近已经烘进画面，再裁切的是放大后的画面。→ 从子项目 `edit.json` 重渲并加 `style.crop`（`story.py chapters` 已这样做），render.py 会把推近坐标一起平移。顶栏下沿：取源帧顶部 320px，在地址栏空白列逐行看颜色突变（Chrome 3024 宽 Retina 约在 y=166–167）。
+23b. **合集里字幕叠在深色故事卡上 / 淡化帧上**：字幕时间按片段算，交叉淡化时会伸进卡片里。→ 进入片段的字幕从淡化结束开始，离开片段的字幕在下一张卡开始淡入时结束（story.py `plan` 已处理）；截短后重新检查 ≥3s。
+23c. **story.py / 自写合成脚本输出 `Broken pipe` / `Error muxing a packet`**：读片段的 ffmpeg 解码进程在读够帧数后被主动关掉，属于噪音。看最后的 `[ok]` 和时长即可。
 
 ## E Mac 代录（ui.py / GUI agent）
 
@@ -61,3 +65,5 @@
 34. **字幕偏上 / 粗体不对**：`msyh.ttc` 的 index 1 是 YaHei UI 不是粗体 → `font_bold` 指定 msyhbd.ttc；字幕按「国」字墨迹 bbox 居中，不加固定偏移。
 35. **连续两次抽帧互相覆盖，读到旧图**：`frames` 已改为自动编号（`_frames_2.jpg`…），看 [ok] 打印的实际文件名。
 36. **改完 srt 再跑 `plan`，用户的字幕改动丢了**：`plan` 会按 plan.json 重写 captions_src.srt → 用户只改字幕时用 `reburn`；还要改剪辑就先把字幕同步回 plan.json。
+37. **字幕在过渡页淡入时被截短（<3s）**：`story.py` 规定字幕不压在卡上，后面接卡的字幕要提前 0.5s 收掉。→ `story.py plan` 看 `<3s` 告警，把该字幕所在保留段放慢或多留 0.5s（改 plan.json 再重渲章节）。
+38. **`story.py chapters` 里 `"project": "."`**：相对路径按项目根目录解析，指向本项目自己；章节素材读的是 `work/edit.json`，改了 plan.json 要先跑 `from_video.py plan` 再 `chapters`，否则卡里是旧剪辑。
