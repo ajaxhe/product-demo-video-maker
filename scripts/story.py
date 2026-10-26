@@ -307,11 +307,12 @@ class Card:
             self.add(p, x, py0, t)
             x += p.width / self.k + 18
             if i < len(c["flow"]) - 1:
-                # 箭头按「字形墨迹」与胶囊垂直居中对齐（不能按文字框顶对齐，否则箭头会偏低）
-                af = font(F["text"], self.S(34))
-                l_, t_, r_, b_ = af.getbbox("→")
+                # 箭头按「实际渲染出的墨迹像素」与胶囊垂直居中（字体给的字框数据不可靠：箭头字形在框里偏下）
                 ar = text_layer("→", F["text"], self.S(34), (200, 210, 240))
-                ay = py0 + (p.height / 2 - (t_ + b_) / 2) / self.k
+                al = np.array(ar)[:, :, 3]
+                rows = np.where(al > 40)[0]
+                ink_c = (rows.min() + rows.max()) / 2.0               # 箭头墨迹中心（箭头图层内，实际像素）
+                ay = py0 + (p.height / 2.0 - ink_c) / self.k           # 胶囊中心 − 墨迹中心 → 图层顶边（1920 基准）
                 self.add(ar, x, ay, t + 0.08)
                 x += ar.width / self.k + 18
             t += 0.15
