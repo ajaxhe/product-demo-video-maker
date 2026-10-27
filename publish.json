@@ -1,14 +1,23 @@
 {
   "skill_name": "product-demo-video-maker",
   "display_name": "Product Demo Video Maker",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "github_repo": "ajaxhe/product-demo-video-maker",
   "clawhub_owner": "ajaxhe",
   "category": "creative",
-  "changelog": "首次发布",
+  "changelog": "重写中文名称与检索型描述，补充 skillhub.cn 中文元数据；README 中英双语",
   "tags": ["video", "demo", "screen-recording", "captions", "subtitles", "ffmpeg", "opencv", "product-demo"],
   "clawscan_note": "Runs local ffmpeg/OpenCV to cut and render user-supplied screen recordings. Optionally drives a headless browser (Playwright) or a local GUI app to capture demo footage, and writes outputs into ~/Movies/demo-videos. No network calls at runtime beyond those optional recorders.",
   "pr_description": "Product demo video maker: give it a screen recording and it detects active segments, stitches multiple takes in story order, cuts dead air and loading screens, zooms + ripples key clicks, mosaics sensitive info, and burns in frame-accurate captions (plus an editable .srt and a clean no-caption version). Also supports headless web capture, screenshot sets, and AI-driven Mac app recording as material sources.",
+  "platform_overrides": {
+    "skillhub": {
+      "slug": "product-demo-video-maker",
+      "displayName": "产品演示视频剪辑",
+      "summary": "把产品界面录屏交给 AI 剪成演示片：自动剪空档/加载/误操作、等待段倍速压缩、核心点击推近加涟漪、敏感信息打码、配帧级字幕（可改 .srt 一键重烧），按目标时长 30s/60s 分配节奏",
+      "description": "面向产品经理、市场与开发者的一站式演示视频流水线：你只要静音录好产品界面（可多段），本 Skill 读关键帧理解操作，按故事节拍把多段素材拼成一条时间线，剪掉空档、加载页与误操作，把等待段高倍速压缩（实测 7 分钟压到 3 秒），给核心点击加推近与涟漪，对团队名等敏感信息打码，最后逐条配帧级字幕（微软雅黑、黑底白字、垂直居中），并同时产出带字幕成片、可编辑 .srt、无字幕版三种交付物；你改完字幕，一句话即可重新烧制下一版。也支持从网页 URL 无头录制、给一组截图、或由 AI 代操作 Mac 应用来采集素材，并能把多个已定稿的功能演示串成带章节过渡页的故事线合集（过渡页可直接取参考 PPT 的底图与字体）。适用场景：产品发布会演示、官网与会展展区循环播放、销售客户案例视频、对内汇报 Demo、开源项目 README 视频。关键词：录屏剪辑、演示视频制作、AI 剪辑、加字幕、字幕重烧、点击推近、缩时压缩、敏感信息打码、30 秒演示视频、demo video、screen recording editing。",
+      "tags": ["视频剪辑", "演示视频", "录屏", "产品demo", "加字幕", "打码", "倍速压缩", "点击推近", "ffmpeg", "自动化剪辑"]
+    }
+  },
   "platforms": {
     "clawhub": { "enabled": true },
     "agentskillhub": { "enabled": true },
