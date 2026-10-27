@@ -1,6 +1,10 @@
 ---
 name: product-demo-video-maker
-description: 产品演示视频制作（剪辑为主，可扩展自动录屏）。默认流程：用户自己静音录好产品界面（.mov/.mp4，可多段），本 skill 看关键帧理解操作，按故事节拍拼接多段录屏、剪掉空档/加载/误操作、等待段高倍速压缩、核心点击推近加涟漪、敏感信息打码、合并补录片段、配帧级字幕（微软雅黑，烧入成片 + 可改 .srt + 无字幕版），按目标时长（如 30s/60s）分配节奏，用户改 srt 后一键重烧。也支持从 Web URL（无头录制）、一组截图、或由 AI 代操作 Mac 应用来生成素材。触发词：剪辑录屏、演示视频剪辑、配字幕、加字幕、录屏加推近、打码、补录合进去、多段录屏合成、改字幕重烧、控制在 30 秒/1 分钟、产品演示视频、录个 demo、截图做视频、product demo video。
+description: 产品演示视频制作（剪辑为主，可扩展自动录屏）。默认流程：用户自己静音录好产品界面（.mov/.mp4，可多段），本 skill 看关键帧理解操作，按故事节拍拼接多段录屏、剪掉空档/加载/误操作、等待段高倍速压缩、核心点击推近加涟漪、敏感信息打码、合并补录片段、配帧级字幕（微软雅黑，烧入成片 + 可改 .srt + 无字幕版），按目标时长（如 30s/60s）分配节奏，用户改 srt 后一键重烧。也支持从 Web URL（无头录制）、一组截图、或由 AI 代操作 Mac 应用来生成素材。触发词：剪辑录屏、演示视频剪辑、配字幕、加字幕、录屏加推近、打码、补录合进去、多段录屏合成、改字幕重烧、控制在 30 秒/1 分钟、产品演示视频、录个 demo、截图做视频、product demo video。Also: product demo video editor for agents — turn a screen recording into a captioned, click-zoomed, redacted demo video.
+version: 1.0.0
+category: creative
+tags: video, demo, screen-recording, captions, subtitles, ffmpeg, opencv, product-demo, agent-skill
+license: MIT
 ---
 
 # 产品演示视频剪辑
