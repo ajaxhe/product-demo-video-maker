@@ -5,6 +5,7 @@
   "github_repo": "ajaxhe/product-demo-video-maker",
   "clawhub_owner": "ajaxhe",
   "category": "creative",
+  "changelog": "首次发布",
   "tags": ["video", "demo", "screen-recording", "captions", "subtitles", "ffmpeg", "opencv", "product-demo"],
   "clawscan_note": "Runs local ffmpeg/OpenCV to cut and render user-supplied screen recordings. Optionally drives a headless browser (Playwright) or a local GUI app to capture demo footage, and writes outputs into ~/Movies/demo-videos. No network calls at runtime beyond those optional recorders.",
   "pr_description": "Product demo video maker: give it a screen recording and it detects active segments, stitches multiple takes in story order, cuts dead air and loading screens, zooms + ripples key clicks, mosaics sensitive info, and burns in frame-accurate captions (plus an editable .srt and a clean no-caption version). Also supports headless web capture, screenshot sets, and AI-driven Mac app recording as material sources.",
@@ -12,6 +13,7 @@
     "clawhub": { "enabled": true },
     "agentskillhub": { "enabled": true },
     "skillshubai": { "enabled": true },
+    "skillhub": { "enabled": true },
     "agentskillshub": { "enabled": false }
   }
 }
